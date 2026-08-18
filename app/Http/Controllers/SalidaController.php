@@ -13,13 +13,20 @@ class SalidaController extends Controller
 {
     public function index()
     {
-        $salidas = Salida::with(['usuario'])->latest('id')->paginate(10);
+        // CORRECCIÓN 1: Cargar 'usuario.rol' y 'detalles' para que la vista muestre el rol y el total
+        $salidas = Salida::with(['usuario.rol', 'detalles'])
+            ->latest('id')
+            ->paginate(10);
+
         return view('salidas.index', compact('salidas'));
     }
 
     public function create()
     {
-        $productos = Producto::where('estado', 'Activo')->where('stock_actual', '>', 0)->get();
+        $productos = Producto::where('estado', 'Activo')
+            ->where('stock_actual', '>', 0)
+            ->get();
+
         return view('salidas.create', compact('productos'));
     }
 
@@ -44,8 +51,7 @@ class SalidaController extends Controller
         }
 
         DB::transaction(function () use ($request) {
-            // CORRECCIÓN 1: Obtener explícitamente la columna 'id' del usuario autenticado
-            $usuarioId = Auth::user()->id;
+            $usuarioId = Auth::id();
 
             // 1. Crear la Salida
             $salida = Salida::create([
@@ -59,7 +65,6 @@ class SalidaController extends Controller
             foreach ($request->productos as $item) {
                 $producto = Producto::findOrFail($item['id']);
                 
-                // CORRECCIÓN 2: Controlar que el precio nunca viaje como NULL
                 $precioUnitario = $producto->precio_venta ?? 0;
                 $subtotal = $item['cantidad'] * $precioUnitario;
 
@@ -82,7 +87,9 @@ class SalidaController extends Controller
 
     public function show(Salida $salida)
     {
-        $salida->load(['usuario', 'detalles.producto']);
+        // CORRECCIÓN 2: Cargar la relación 'usuario.rol' también para el detalle de la salida
+        $salida->load(['usuario.rol', 'detalles.producto']);
+
         return view('salidas.show', compact('salida'));
     }
 }

@@ -27,6 +27,12 @@ class Salida extends Model
         ];
     }
 
+    // Accesor para calcular el total dinámicamente desde los detalles
+    public function getTotalAttribute(): float
+    {
+        return (float) $this->detalles->sum('subtotal');
+    }
+
     // Relaciones
     public function usuario()
     {

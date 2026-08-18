@@ -7,7 +7,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h2 class="text-2xl font-bold text-slate-800">Salidas de Inventario</h2>
-            <p class="text-sm text-gray-500">Registro de egresos de insumos (Uso en cocina, mermas, ajuses)</p>
+            <p class="text-sm text-gray-500">Registro de egresos de insumos (Uso en cocina, mermas, ajustes)</p>
         </div>
         <a href="{{ route('salidas.create') }}" class="inline-flex justify-center items-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg text-sm shadow transition">
             + Registrar Salida
@@ -35,12 +35,22 @@
                     </td>
                     <td class="p-4">
                         <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-800">
-                            {{ $s->tipo_salida ?? 'Consumo Interno' }}
+                            {{ $s->motivo ?? $s->tipo_salida ?? 'Consumo Interno' }}
                         </span>
                     </td>
                     <td class="p-4 text-gray-500 text-xs">{{ \Carbon\Carbon::parse($s->fecha)->format('d/m/Y H:i') }}</td>
-                    <td class="p-4 text-gray-600">{{ $s->usuario->name ?? 'Usuario Sistema' }}</td>
-                    <td class="p-4 font-bold text-slate-800">${{ number_format($s->total, 2) }}</td>
+                    
+                    <!-- CORRECCIÓN: Nombre de usuario + Rol -->
+                    <td class="p-4 text-gray-600">
+                        @if($s->usuario)
+                            <span class="font-medium text-slate-700">{{ $s->usuario->nombres }} {{ $s->usuario->apellidos ?? '' }}</span>
+                            <span class="block text-xs text-amber-600 font-semibold">({{ $s->usuario->rol->nombre ?? 'Sin Rol' }})</span>
+                        @else
+                            <span class="text-gray-400 italic">Usuario Sistema</span>
+                        @endif
+                    </td>
+
+                    <td class="p-4 font-bold text-slate-800">${{ number_format($s->total ?? 0, 2) }}</td>
                     <td class="p-4 text-right">
                         <a href="{{ route('salidas.show', $s) }}" class="text-blue-600 hover:text-blue-800 font-medium text-xs bg-blue-50 px-2.5 py-1.5 rounded-md">Ver Detalle</a>
                     </td>
@@ -66,17 +76,24 @@
                     </h3>
                 </div>
                 <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-800">
-                    {{ $s->tipo_salida ?? 'Consumo Interno' }}
+                    {{ $s->motivo ?? $s->tipo_salida ?? 'Consumo Interno' }}
                 </span>
             </div>
 
             <div class="text-xs space-y-1 text-gray-600">
-                <p>👤 <strong>Por:</strong> {{ $s->usuario->name ?? 'Usuario Sistema' }}</p>
+                <!-- CORRECCIÓN: Nombre y Rol en vista móvil -->
+                <p>👤 <strong>Por:</strong> 
+                    @if($s->usuario)
+                        {{ $s->usuario->nombres }} <span class="text-amber-600 font-semibold">({{ $s->usuario->rol->nombre ?? 'Sin Rol' }})</span>
+                    @else
+                        Usuario Sistema
+                    @endif
+                </p>
                 <p>📅 <strong>Fecha:</strong> {{ \Carbon\Carbon::parse($s->fecha)->format('d/m/Y H:i') }}</p>
             </div>
 
             <div class="pt-2 border-t border-gray-100 flex justify-between items-center">
-                <span class="text-base font-bold text-slate-800">${{ number_format($s->total, 2) }}</span>
+                <span class="text-base font-bold text-slate-800">${{ number_format($s->total ?? 0, 2) }}</span>
                 <a href="{{ route('salidas.show', $s) }}" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-md font-semibold">Ver Detalle</a>
             </div>
         </div>
